@@ -125,7 +125,7 @@ docker-compose up --build (subir o docker novamente)
 
 # Aplica migrations com Alembic
 alembic revision --autogenerate -m "(descricao)"
-alembic upgrade head
+alembic upgrade head (utilize este também se está dizendo que a database está desatualizada ao tentar gerar migrations)
 
 # Acessar o banco MySQL (Atalho)
 Liste os containers: docker ps
