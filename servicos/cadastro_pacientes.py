@@ -1,5 +1,9 @@
 from db import SessionLocal
 from models import Paciente
+import re
+
+EMAIL_REGEX = r'^(?!.*[.]{2})(?![.])[a-zA-Z0-9.]{1,64}(?<![.])@(?=.{1,255}$)((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,}$'
+NOME_REGEX = r'^[A-Za-zÀ-ÖØ-öø-ÿÇçÑñ ]+$'
 
 def consultar_cpf(cpf):
     session = SessionLocal()
@@ -47,12 +51,26 @@ def validar_data_nascimento(data_nascimento_str):
 def validar_sexo(sexo):
     if sexo is None:
         print("Sexo não pode ser vazio.")
-        return False
+        return None
     sexo = sexo.upper()
     if sexo not in ('M', 'F', 'O'):
         print("Valor inválido para sexo. Use 'M', 'F' ou 'O'.")
-        return False
+        return None
     return sexo
+
+def validar_email(email):
+    return re.match(EMAIL_REGEX, email)
+
+def validar_nome(nome):
+    return re.match(NOME_REGEX, nome)
+
+def validar_tipo_sanguineo(tipo_sanguineo):
+    tipos_validos = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+    if tipo_sanguineo in tipos_validos:
+        return True
+    else:
+        return None
+
 
 def cadastrar_paciente(nome_completo, data_nascimento, cpf, sexo, telefone, email=None, tipo_sanguineo=None, alergias_conhecidas=None):
     obrigatorios = {
@@ -118,6 +136,55 @@ def cadastrar_paciente(nome_completo, data_nascimento, cpf, sexo, telefone, emai
     if not data_convertida:
         print("Data de nascimento inválida. Interrompendo o cadastro...\n")
         return None
+    
+    #------------ VALIDAÇÃO SEXO ------------#
+    sexo_validado = validar_sexo(sexo)
+    if not sexo_validado:
+        print("Sexo inválido. Interrompendo o cadastro...\n")
+        return None
+    
+    #------------ VALIDAÇÃO NOME ------------#
+    if not validar_nome(nome_completo):
+        print("Nome inválido. Use apenas letras e espaços. Interrompendo o cadastro...\n")
+        return None
+    
+    #------------ VALIDAÇÃO EMAIL ------------#
+    if email and not validar_email(email):
+        print("E-mail inválido. Interrompendo o cadastro...\n")
+        return None
+    
+    #------------ VALIDAÇÃO TIPO SANGUINEO ------------#
+    if tipo_sanguineo:
+        tipo_sanguineo = tipo_sanguineo.upper().strip()
+        if not validar_tipo_sanguineo(tipo_sanguineo):
+            print("Tipo sanguíneo inválido. Use valores como A+, O-, AB+, etc. Interrompendo o cadastro...\n")
+            return None
 
-    return
+    #------------ CONSULTA EXTRA COMO MEDIDA DE SEGURANÇA ------------#
+    if not consultar_cpf(cpf_final):
+        return None
+
+    #------------ INSERÇÃO DE PACIENTE NO BANCO DE DADOS ------------#
+    session = SessionLocal()
+    try:
+        novo_paciente = Paciente(
+            nome_completo=nome_completo,
+            data_nascimento=data_convertida,
+            cpf=cpf_final,
+            sexo=sexo_validado,
+            telefone=telefone,
+            email=email,
+            tipo_sanguineo=tipo_sanguineo,
+            alergias_conhecidas=alergias_conhecidas
+        )
+        session.add(novo_paciente)
+        session.commit()
+        print("Cadastro realizado com sucesso.\n")
+        return novo_paciente
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao cadastrar paciente: {e}")
+        return None
+    finally:
+        session.close()
     
