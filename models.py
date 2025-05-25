@@ -12,6 +12,7 @@ class Usuario(Base):
     nome_completo = Column(String(150), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     is_recepcionista = Column(Boolean, default=False)
+    is_medico = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
 
 class Paciente(Base):

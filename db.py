@@ -25,7 +25,8 @@ def criar_admin_inicial():
                 nome_completo="Administrador Padrão",
                 email=os.getenv("ADMIN_EMAIL"),
                 is_admin=True,
-                is_recepcionista=False
+                is_recepcionista=False,
+                is_medico = True 
             )
             session.add(admin)
             session.commit()
@@ -49,6 +50,7 @@ def criar_recepcionista_inicial():
                 nome_completo="RECEPCIONISTA PADRÃO",
                 email="joão@hospital.com",
                 is_admin=False,
+                is_medico=True,
                 is_recepcionista=True
             )
             session.add(recepcionista)

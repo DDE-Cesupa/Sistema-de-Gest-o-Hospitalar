@@ -127,9 +127,11 @@ docker-compose up --build (subir o docker novamente)
 alembic revision --autogenerate -m "(descricao)"
 alembic upgrade head
 
-# Acessar o banco MySQL
+# Acessar o banco MySQL (Atalho)
 Liste os containers: docker ps
 Acesse o terminal do container: docker exec -it nome_ou_id_do_container mysql -u seu_usuario -p
+No nosso caso, isso é: docker exec -it mysql_hospital mysql -uroot -p
+E nossa senha é: 'endocKbOsIQU'
 Selecione o banco: USE hospital;
 
 
