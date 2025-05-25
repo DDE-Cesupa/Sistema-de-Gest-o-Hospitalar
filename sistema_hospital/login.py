@@ -54,7 +54,7 @@ def menu_login():
                 print("Email e/ou senha incorretos. Por favor, tente novamente.")
             else:
                 print(f"Bem-vindo, {usuario.nome_completo}!")
-                menu_usuario(usuario.username)
+                return menu_usuario(usuario.username, usuario.is_recepcionista, usuario.is_medico, usuario.is_medico)
             
         elif opcao == '0':
             print("Saindo do sistema. Até logo!")
