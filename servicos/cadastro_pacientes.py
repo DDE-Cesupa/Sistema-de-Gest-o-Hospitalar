@@ -376,4 +376,52 @@ def atualizar_paciente_cli(usuario):
         print(f"Erro: {e}\n")
     finally:
         session.close()
+        
 >>>>>>> 5d35a02 (Implementação do caso de uso 3)
+def inativar_paciente(cpf, usuario_logado):
+    session = SessionLocal()
+
+    try:
+        paciente = session.query(Paciente).filter_by(cpf=cpf).first()
+
+        if not paciente:
+            print("Paciente não encontrado.")
+            return
+
+        if usuario_logado.nivel_acesso.lower() != "admin":
+            print("Acesso negado. Apenas administradores podem inativar cadastros.")
+            return
+
+        if paciente.status == "Inativo":
+            print("Paciente já está inativo.")
+            return
+
+        consultas_pendentes = session.query(Consulta).filter_by(cpf_paciente=cpf, status="Agendada").count()
+        if consultas_pendentes > 0:
+            print("Paciente possui consultas agendadas. Cancele-as antes de inativar o cadastro.")
+            return
+
+        motivo = input("Informe o motivo da inativação: ").strip()
+        if not motivo:
+            print("Motivo da inativação é obrigatório.")
+            return
+
+        paciente.status = "Inativo"
+
+        historico = HistoricoPaciente(
+            cpf_paciente=cpf,
+            acao="Inativação",
+            motivo=motivo,
+            usuario_responsavel=usuario_logado.nome,
+            data_hora=datetime.now()
+        )
+        session.add(historico)
+        session.commit()
+
+        print("Cadastro do paciente foi inativado com sucesso.")
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao inativar paciente: {e}")
+    finally:
+        session.close()
